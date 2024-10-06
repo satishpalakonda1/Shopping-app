@@ -1,0 +1,230 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+  <title>Shopping API</title> 
+  <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css"> 
+  <link rel="stylesheet" href="../node_modules/bootstrap-icons/font/bootstrap-icons.css"> 
+  <style>
+    body {
+      background-color: #f7f7f7;
+    }
+    header {
+      background-color: #dc3545;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+    .row {
+      margin-top: 30px;
+    }
+    #lstCategories {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    .card {
+      margin: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 200px;
+      height: 350px; /* Ensuring uniform height for all cards */
+    }
+    .card img {
+      object-fit: cover;
+      width: 100%;
+      height: 150px;
+    }
+    .card-header p {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .btn {
+      font-size: 1rem;
+      padding: 10px;
+    }
+    #productsContainer {
+      height: 500px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .modal-header {
+      background-color: #dc3545;
+      color: white;
+    }
+    table {
+      width: 100%;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px;
+    }
+    /* Flexbox layout to keep category and products side by side */
+    .container-flex {
+      display: flex;
+      justify-content: space-between;
+    }
+    .category-container {
+      flex: 1;
+      padding-right: 20px;
+    }
+    .products-container {
+      flex: 4;
+      display: flex;
+      flex-wrap: wrap;
+    }
+  </style>
+  <script> 
+    function GetCategories() {
+      fetch("http://fakestoreapi.com/products/categories")
+      .then(function(response){ 
+        return response.json(); 
+      }) 
+      .then(function(data){ 
+        data.unshift("All"); 
+        for(var item of data) {
+          var option = document.createElement("option"); 
+          option.text = item.toUpperCase(); 
+          option.value = item;
+          document.getElementById("lstCategories").appendChild(option); 
+        } 
+      }) 
+    }
+
+    function GetProducts(url){ 
+      document.getElementById("productsContainer").innerHTML=""; 
+      fetch(url) 
+      .then(function(response){ 
+        return response.json(); 
+      }) 
+      .then(function(data){ 
+        for(var item of data) { 
+          var div = document.createElement("div"); 
+          div.className="card"; 
+          div.innerHTML = ` 
+            <img src=${item.image} class="card-img-top"> 
+            <div class="card-header" style="height:60px"> 
+              <p>${item.title}</p> 
+            </div> 
+            <div class="card-body"> 
+              <p><strong>Price:</strong> $${item.price}</p> 
+              <p><strong>Rating:</strong> ${item.rating.rate} (${item.rating.count} reviews)</p> 
+            </div> 
+            <div class="card-footer"> 
+              <button onclick="AddToCartClick(${item.id})" class="btn btn-danger w-100"> 
+                <span class="bi bi-cart4"> </span> Add to Cart 
+              </button> 
+            </div>`; 
+          document.getElementById("productsContainer").appendChild(div); 
+        } 
+      }) 
+    }
+
+    function bodyload(){ 
+      GetCategories(); 
+      GetProducts("http://fakestoreapi.com/products"); 
+      GetCartItemsCount(); 
+    }
+
+    function CategoryChanged(){ 
+      var categoryName = document.getElementById("lstCategories").value; 
+      if(categoryName=="All") { 
+        GetProducts("http://fakestoreapi.com/products"); 
+      } else { 
+        GetProducts(`http://fakestoreapi.com/products/category/${categoryName}`); 
+      } 
+    }
+
+    var cartItems = []; 
+    var count = 0; 
+    function GetCartItemsCount(){ 
+      count = cartItems.length; 
+      document.getElementById("cartCount").innerHTML = count; 
+    }
+
+    function AddToCartClick(id){ 
+      fetch(`http://fakestoreapi.com/products/${id}`)
+      .then(function(response){ 
+        return response.json(); 
+      }) 
+      .then(function(data){ 
+        cartItems.push(data); 
+        alert("Item Added to Cart"); 
+        GetCartItemsCount(); 
+      }) 
+    }
+
+    function ShowCartClick(){ 
+      document.querySelector("tbody").innerHTML=""; 
+      for(var item of cartItems){ 
+        var tr = document.createElement("tr"); 
+        var tdTitle = document.createElement("td"); 
+        var tdPrice = document.createElement("td"); 
+        var tdPhoto = document.createElement("td"); 
+        tdTitle.innerHTML = item.title; 
+        tdPrice.innerHTML = "$" + item.price; 
+        var img = document.createElement("img"); 
+        img.src = item.image; 
+        img.width = 100; 
+        img.height = 100; 
+        tdPhoto.appendChild(img); 
+        tr.appendChild(tdTitle); 
+        tr.appendChild(tdPrice); 
+        tr.appendChild(tdPhoto); 
+        document.querySelector("tbody").appendChild(tr); 
+      } 
+    }
+  </script> 
+</head> 
+<body class="container-fluid" onload="bodyload()"> 
+  <header class="bg-danger text-white text-center p-2"> 
+    <h1><span class="bi bi-cart4"></span> Shopping Online</h1> 
+  </header> 
+  <div class="container-flex"> 
+    <div class="category-container">
+      <h4>Select a Category</h4> 
+      <select class="form-select" id="lstCategories" onchange="CategoryChanged()"></select> 
+    </div> 
+    <div class="products-container" id="productsContainer"></div>
+  </div> 
+  <div class="col-2"> 
+    <button onclick="ShowCartClick()" class="btn btn-warning" data-bs-target="#cart" data-bs-toggle="modal"> 
+      [<span id="cartCount"></span>] <span class="bi bi-cart3"></span> Your Cart Items 
+    </button> 
+    <div class="modal fade" id="cart"> 
+      <div class="modal-dialog modal-dialog-centered"> 
+        <div class="modal-content"> 
+          <div class="modal-header"> 
+            <h3>Your Cart Items</h3> 
+            <button class="btn-close" data-bs-dismiss="modal"></button> 
+          </div> 
+          <div class="modal-body"> 
+            <table class="table table-hover"> 
+              <thead> 
+                <tr> 
+                  <th>Title</th> 
+                  <th>Price</th> 
+                  <th>Preview</th> 
+                </tr> 
+              </thead> 
+              <tbody></tbody> 
+            </table> 
+          </div> 
+          <div class="modal-footer"> 
+            <button data-bs-dismiss="modal" class="btn btn-success">OK</button> 
+          </div> 
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+  <script src="../node_modules/jquery/dist/jquery.js"></script> 
+  <script src="../node_modules/bootstrap/dist/js/bootstrap.bundle.js"></script> 
+</body> 
+</html>
