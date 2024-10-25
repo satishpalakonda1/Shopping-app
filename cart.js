@@ -2,12 +2,12 @@ let cartItems = [];
 
 function bodyload() {
     GetCategories();
-    GetProducts("http://fakestoreapi.com/products");
+    GetProducts("https://fakestoreapi.com/products");
     GetCartItemsCount();
 }
 
 function GetCategories() {
-    fetch("http://fakestoreapi.com/products/categories")
+    fetch("https://fakestoreapi.com/products/categories")
         .then(response => response.json())
         .then(data => {
             data.unshift("All");
