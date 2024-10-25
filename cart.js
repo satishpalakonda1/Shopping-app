@@ -69,9 +69,9 @@ function getRatingStars(rating) {
 function CategoryChanged() {
     const categoryName = document.getElementById("lstCategories").value;
     if (categoryName == "All") {
-        GetProducts("http://fakestoreapi.com/products");
+        GetProducts("https://fakestoreapi.com/products");
     } else {
-        GetProducts(`http://fakestoreapi.com/products/category/${categoryName}`);
+        GetProducts(`https://fakestoreapi.com/products/category/${categoryName}`);
     }
 }
 
@@ -81,7 +81,7 @@ function GetCartItemsCount() {
 }
 
 function AddToCartClick(id) {
-    fetch(`http://fakestoreapi.com/products/${id}`)
+    fetch(`https://fakestoreapi.com/products/${id}`)
         .then(response => response.json())
         .then(data => {
             cartItems.push(data);
